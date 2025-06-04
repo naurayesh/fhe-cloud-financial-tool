@@ -8,3 +8,18 @@
 *~
 # IDE specific files (e.g., VS Code)
 .vscode/
+
+# Specific SEAL example files to ignore (because they are not part of our project)
+1_bfv_basics.cpp
+2_encoders.cpp
+3_levels.cpp
+4_bgv_basics.cpp
+5_ckks_basics.cpp
+6_rotation.cpp
+7_serialization.cpp
+8_performance.cpp
+CMakeLists.txt
+examples.cpp
+examples.h
+fhe_basics.cpp
+fhe_fixed.cpp
