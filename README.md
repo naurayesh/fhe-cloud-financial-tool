@@ -1,42 +1,47 @@
-Project: Encrypted Financial Planning Tool (FHE Private Cloud Application)
+# Project: Encrypted Financial Planning Tool (FHE Private Cloud Application)
 Group Members:
+- Naura Ayesha Tsaqif  
+- Naura Ranantya Kinanti
+- Keefani Mentari Ingprairie
+- Andi Fayza Maharani
+- Leilani Fitri Salimah
 
-
-Project Theme:
+## Project Theme:
 A private cloud application utilizing Fully Homomorphic Encryption (FHE).
 
-Core Idea:
+## Core Idea:
 This application demonstrates a privacy-preserving financial planning tool. Users input their financial data (income, expenses) on their local machine (client), which is then encrypted. This encrypted data is sent over a network to a private cloud server. The server performs budgeting and planning calculations (e.g., net income, savings contribution) directly on the encrypted data, ensuring that the sensitive financial information remains confidential. The encrypted results are then sent back to the user's machine for decryption and display.
 
-Key Technologies Used:
+## Key Technologies Used:
 Fully Homomorphic Encryption (FHE): Specifically, the BFV (Brakerski/Fan-Vercauteren) scheme is employed for its exact integer arithmetic, which is crucial for precise financial calculations.
 
-Microsoft SEAL Library: A powerful, open-source C++ library that provides the cryptographic primitives for FHE.
+- **Microsoft SEAL Library**: A powerful, open-source C++ library that provides the cryptographic primitives for FHE.
 
-C++: Used for implementing both the client-side and server-side application logic.
+- **C++**: Used for implementing both the client-side and server-side application logic.
 
-TCP Sockets: Facilitate secure and reliable network communication between the client (user's machine) and the private cloud server.
+- **TCP Sockets**: Facilitate secure and reliable network communication between the client (user's machine) and the private cloud server.
 
-Fixed-Point Encoding: A technique implemented to represent and compute with decimal values (e.g., cents) and larger numerical ranges within the integer-based BFV scheme.
+- **Fixed-Point Encoding**: A technique implemented to represent and compute with decimal values (e.g., cents) and larger numerical ranges within the integer-based BFV scheme.
 
-Batching: Leverages SEAL's efficient batching capabilities to perform operations on multiple financial data points simultaneously, optimizing performance.
+- **Batching**: Leverages SEAL's efficient batching capabilities to perform operations on multiple financial data points simultaneously, optimizing performance.
 
-How to Run the Application:
-Prerequisites:
-Linux Environment (e.g., Windows Subsystem for Linux - WSL): The application is developed and tested in a Linux environment.
+## How to Run the Application:
 
-Microsoft SEAL Library (Version 4.1 or compatible): Ensure SEAL is properly built and installed on your system. The compilation commands below assume SEAL's headers are accessible via specific include paths and its library via a specific library path. Adjust these paths if your SEAL installation differs from the /root/SEAL structure.
+### Prerequisites:
+- **Linux Environment** (e.g., Windows Subsystem for Linux - WSL): The application is developed and tested in a Linux environment.
 
-Project Files:
-client.cpp: Contains the client-side logic, including FHE key generation, data encryption, network transmission of encrypted data, reception of encrypted results, and final decryption and verification. It also handles user input for financial data.
+- **Microsoft SEAL Library** (Version 4.1 or compatible): Ensure SEAL is properly built and installed on your system. The compilation commands below assume SEAL's headers are accessible via specific include paths and its library via a specific library path. Adjust these paths if your SEAL installation differs from the /root/SEAL structure.
 
-server.cpp: Contains the server-side logic (representing the "private cloud"), responsible for receiving FHE parameters, keys, and encrypted data, performing homomorphic computations, and sending back encrypted results.
+### Project Files:
+- `client.cpp`: Contains the client-side logic, including FHE key generation, data encryption, network transmission of encrypted data, reception of encrypted results, and final decryption and verification. It also handles user input for financial data.
 
-Steps to Compile and Run:
+- `server.cpp`: Contains the server-side logic (representing the "private cloud"), responsible for receiving FHE parameters, keys, and encrypted data, performing homomorphic computations, and sending back encrypted results.
+
+### Steps to Compile and Run:
 Navigate to the Project Directory:
 Open your Linux terminal (e.g., WSL) and navigate to the directory containing client.cpp and server.cpp.
 
-cd ~/SEAL/native/examples/
+<pre> ```bash cd ~/SEAL/native/examples/ ``` </pre>
 
 Compile the Server Application:
 
