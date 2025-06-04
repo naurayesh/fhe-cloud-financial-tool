@@ -43,29 +43,29 @@ Open your Linux terminal (e.g., WSL) and navigate to the directory containing cl
 
 ``` cd ~/SEAL/native/examples/ ```
 
-Compile the Server Application:
+**Compile the Server Application:**
 
 ``` g++ -std=c++17 server.cpp -o server_app -I/root/SEAL/build/native/src -I/root/SEAL/native/src -I/root/SEAL/build/thirdparty/msgsl-src/include -L/root/SEAL/build/lib -lseal-4.1 ```
 
 This command compiles server.cpp into an executable named server_app.
 
-Compile the Client Application:
+**Compile the Client Application:**
 
 ``` g++ -std=c++17 client.cpp -o client_app -I/root/SEAL/build/native/src -I/root/SEAL/native/src -I/root/SEAL/build/thirdparty/msgsl-src/include -L/root/SEAL/build/lib -lseal-4.1 ```
 
 This command compiles client.cpp into an executable named client_app.
 
-Run the Applications (Crucial Order):
+**Run the Applications (Crucial Order):**
 You will need two separate terminal windows/tabs for this demonstration.
 
-Terminal 1 (Server):
+**Terminal 1 (Server):**
 
 ``` cd ~/SEAL/native/examples/```
 ``` ./server_app```
 
 The server will start listening on port 8080 and wait for a client connection. You will see "Server listening on port 8080" and "Waiting for client connection...".
 
-Terminal 2 (Client):
+**Terminal 2 (Client):**
 
 ``` cd ~/SEAL/native/examples/```
 ``` ./client_app```
@@ -74,26 +74,26 @@ The client will connect to the server. It will then prompt you to enter income a
 
 After input, the client will perform encryption, send data over the network, receive encrypted results, decrypt them, and display the verification. You will see output in both terminals as the communication and computation proceed.
 
-### **Expected Output:**
+## **Expected Output:**
 You will observe detailed logs in both client and server terminals, demonstrating the full FHE lifecycle:
 
-FHE parameter setup and key generation (client).
+- FHE parameter setup and key generation (client).
 
-Encrypted data transfer from client to server via TCP sockets.
+- Encrypted data transfer from client to server via TCP sockets.
 
-Homomorphic operations (subtraction for net income, multiplication for savings contribution) performed on the server without ever decrypting the sensitive data.
+- Homomorphic operations (subtraction for net income, multiplication for savings contribution) performed on the server without ever decrypting the sensitive data.
 
-Encrypted results transfer from the server back to the client.
+- Encrypted results transfer from the server back to the client.
 
-Decryption and verification of results on the client, confirming the calculations were performed correctly on encrypted data.
+- Decryption and verification of results on the client, confirming the calculations were performed correctly on encrypted data.
 
-### **Future Enhancements:**
-Full Cloud Deployment: Deploy the server_app to an actual Virtual Private Server (VPS) with a public IP address, allowing clients from anywhere to connect.
+## **Future Enhancements:**
+- **Full Cloud Deployment:** Deploy the server_app to an actual Virtual Private Server (VPS) with a public IP address, allowing clients from anywhere to connect.
 
-Robust Network Communication: Implement more advanced network features like error handling for disconnections, and potentially use HTTPS for encrypted communication over the internet.
+- **Robust Network Communication**: Implement more advanced network features like error handling for disconnections, and potentially use HTTPS for encrypted communication over the internet.
 
-Enhanced User Interface: Develop a graphical user interface (e.g., a simple web application or desktop app) for more intuitive data input and result visualization.
+- **Enhanced User Interface**: Develop a graphical user interface (e.g., a simple web application or desktop app) for more intuitive data input and result visualization.
 
-More Complex Financial Models: Integrate additional financial calculations such as compound interest, loan amortization, or more detailed budget analysis.
+- **More Complex Financial Models**: Integrate additional financial calculations such as compound interest, loan amortization, or more detailed budget analysis.
 
-Security Hardening: Further secure the VPS environment and implement robust key management practices for the client.
+-** Security Hardening**: Further secure the VPS environment and implement robust key management practices for the client.
