@@ -41,17 +41,17 @@ Fully Homomorphic Encryption (FHE): Specifically, the BFV (Brakerski/Fan-Vercaut
 Navigate to the Project Directory:
 Open your Linux terminal (e.g., WSL) and navigate to the directory containing client.cpp and server.cpp.
 
-``` cd ~/SEAL/native/examples/ ```
+    cd ~/SEAL/native/examples/ 
 
 **Compile the Server Application:**
 
-``` g++ -std=c++17 server.cpp -o server_app -I/root/SEAL/build/native/src -I/root/SEAL/native/src -I/root/SEAL/build/thirdparty/msgsl-src/include -L/root/SEAL/build/lib -lseal-4.1 ```
+    g++ -std=c++17 server.cpp -o server_app -I/root/SEAL/build/native/src -I/root/SEAL/native/src -I/root/SEAL/build/thirdparty/msgsl-src/include -L/root/SEAL/build/lib -lseal-4.1
 
 This command compiles server.cpp into an executable named server_app.
 
 **Compile the Client Application:**
 
-``` g++ -std=c++17 client.cpp -o client_app -I/root/SEAL/build/native/src -I/root/SEAL/native/src -I/root/SEAL/build/thirdparty/msgsl-src/include -L/root/SEAL/build/lib -lseal-4.1 ```
+    g++ -std=c++17 client.cpp -o client_app -I/root/SEAL/build/native/src -I/root/SEAL/native/src -I/root/SEAL/build/thirdparty/msgsl-src/include -L/root/SEAL/build/lib -lseal-4.1
 
 This command compiles client.cpp into an executable named client_app.
 
@@ -60,15 +60,15 @@ You will need two separate terminal windows/tabs for this demonstration.
 
 **Terminal 1 (Server):**
 
-``` cd ~/SEAL/native/examples/```
-``` ./server_app```
+    cd ~/SEAL/native/examples/
+    ./server_app
 
 The server will start listening on port 8080 and wait for a client connection. You will see "Server listening on port 8080" and "Waiting for client connection...".
 
 **Terminal 2 (Client):**
 
-``` cd ~/SEAL/native/examples/```
-``` ./client_app```
+    cd ~/SEAL/native/examples/
+    ./client_app
 
 The client will connect to the server. It will then prompt you to enter income and expense amounts directly in the terminal. Type each amount and press Enter, then type done and press Enter when you're finished with a category.
 
