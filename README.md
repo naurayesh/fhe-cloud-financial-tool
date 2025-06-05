@@ -96,4 +96,4 @@ You will observe detailed logs in both client and server terminals, demonstratin
 
 - **More Complex Financial Models**: Integrate additional financial calculations such as compound interest, loan amortization, or more detailed budget analysis.
 
-- ** Security Hardening**: Further secure the VPS environment and implement robust key management practices for the client.
+- **Security Hardening**: Further secure the VPS environment and implement robust key management practices for the client.
