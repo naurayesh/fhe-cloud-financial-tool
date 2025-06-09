@@ -3,7 +3,6 @@
 #include <vector>
 #include <numeric>
 #include <cmath>
-#include <fstream>
 #include <sstream> // For stringstream for network serialization
 
 // Headers for socket programming
@@ -15,6 +14,7 @@
 using namespace std;
 using namespace seal;
 
+// --- Networking Helper Functions ---
 // Function to send data over a socket with a size prefix
 bool send_data(int sock, const string& data) {
     size_t data_size = data.size();
@@ -50,22 +50,8 @@ string receive_data(int sock) {
     return string(buffer.begin(), buffer.end());
 }
 
-void print_example_banner(string title) {
-    if (!title.empty()) {
-        size_t title_size = title.size();
-        size_t bar_size = max(2UL, 79UL - title_size);
-        string bar_top(bar_size, '=');
-        string bar_bottom(bar_size, '-');
-        cout << endl;
-        cout << "==" << bar_top << endl;
-        cout << "= " << title << endl;
-        cout << "==" << bar_bottom << endl;
-    }
-}
 
 int main() {
-    print_example_banner("Encrypted Financial Planning Tool - Server-Side Network Logic");
-
     // --- Network Setup (Server) ---
     int server_fd, new_socket;
     struct sockaddr_in address;
@@ -79,7 +65,7 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    // Forcefully attaching socket to the port 8080
+    // Attaching socket to the port 8080
     if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
         perror("setsockopt");
         exit(EXIT_FAILURE);
@@ -107,16 +93,17 @@ int main() {
         perror("accept");
         exit(EXIT_FAILURE);
     }
-    cout << "Client connected!" << endl;
+    cout << "Client connected!" << endl << endl;
 
     // --- FHE Setup (Server) ---
     // 1. Receive and Load Encryption Parameters
     string parms_str = receive_data(new_socket);
-    if (parms_str.empty()) return 1;
+    if (parms_str.empty()) { cerr << "Error: Failed to receive parameters." << endl; return 1; }
     stringstream parms_ss(parms_str);
     EncryptionParameters parms;
     parms.load(parms_ss);
     cout << "Encryption parameters loaded from network." << endl;
+    cout << endl;
 
     SEALContext context(parms);
     cout << "SEALContext created on server with parameters:" << endl;
@@ -125,74 +112,120 @@ int main() {
     cout << "  Coeff Modulus Size: " << context.first_context_data()->total_coeff_modulus_bit_count() << " bits" << endl;
     cout << "  Plain Modulus: " << parms.plain_modulus().value() << endl;
     cout << "  Parameters are " << (context.parameters_set() ? "valid" : "invalid") << endl;
+    cout << endl;
 
-    // 2. Receive and Load Public and Relinearization Keys
+    // 2. Receive and Load Public, Relinearization, and Galois Keys
     PublicKey public_key;
     string pk_str = receive_data(new_socket);
-    if (pk_str.empty()) return 1;
+    if (pk_str.empty()) { cerr << "Error: Failed to receive public key." << endl; return 1; }
     stringstream pk_ss(pk_str);
     public_key.load(context, pk_ss);
     cout << "Public key loaded from network." << endl;
 
     RelinKeys relin_keys;
     string rlk_str = receive_data(new_socket);
-    if (rlk_str.empty()) return 1;
+    if (rlk_str.empty()) { cerr << "Error: Failed to receive relinearization keys." << endl; return 1; }
     stringstream rlk_ss(rlk_str);
     relin_keys.load(context, rlk_ss);
     cout << "Relinearization keys loaded from network." << endl;
 
+    GaloisKeys galois_keys;
+    string glk_str = receive_data(new_socket);
+    if (glk_str.empty()) { cerr << "Error: Failed to receive Galois keys." << endl; return 1; }
+    stringstream glk_ss(glk_str);
+    galois_keys.load(context, glk_ss);
+    cout << "Galois keys loaded from network." << endl;
+
     Evaluator evaluator(context);
     BatchEncoder batch_encoder(context);
+    Encryptor encryptor(context, public_key); 
 
     size_t slot_count = batch_encoder.slot_count();
     cout << "Number of slots for batching: " << slot_count << endl;
 
     const double SCALE_FACTOR = 100.0;
     cout << "Using fixed-point scaling factor: " << SCALE_FACTOR << endl;
+    cout << endl;
 
-    // 3. Receive and Load Encrypted Data
-    Ciphertext encrypted_income;
-    string enc_income_str = receive_data(new_socket);
-    if (enc_income_str.empty()) return 1;
-    stringstream enc_income_ss(enc_income_str);
-    encrypted_income.load(context, enc_income_ss);
-    cout << "Encrypted income loaded from network." << endl;
+    // --- 3. Receive Encrypted Data from Client ---
+    Ciphertext encrypted_total_income;
+    string enc_total_income_str = receive_data(new_socket);
+    if (enc_total_income_str.empty()) { cerr << "Error: Failed to receive encrypted total income." << endl; return 1; }
+    stringstream enc_total_income_ss(enc_total_income_str);
+    encrypted_total_income.load(context, enc_total_income_ss);
+    cout << "Encrypted Total Income loaded from network." << endl;
+    cout << endl;
 
-    Ciphertext encrypted_expense;
-    string enc_expense_str = receive_data(new_socket);
-    if (enc_expense_str.empty()) return 1;
-    stringstream enc_expense_ss(enc_expense_str);
-    encrypted_expense.load(context, enc_expense_ss);
-    cout << "Encrypted expense loaded from network." << endl;
+    Plaintext encoded_monthly_savings_goal;
+    string enc_monthly_savings_goal_str = receive_data(new_socket);
+    if (enc_monthly_savings_goal_str.empty()) { cerr << "Error: Failed to receive encoded monthly savings goal." << endl; return 1; }
+    stringstream enc_monthly_savings_goal_ss(enc_monthly_savings_goal_str);
+    encoded_monthly_savings_goal.load(context, enc_monthly_savings_goal_ss);
+    cout << "Encoded Monthly Savings Goal loaded from network." << endl;
+    cout << endl;
 
-    // 4. Perform Homomorphic Operations (Server-side)
+    // Receive encrypted essential expenses sum
+    Ciphertext encrypted_essential_expenses_received;
+    string enc_essential_str = receive_data(new_socket);
+    if (enc_essential_str.empty()) { cerr << "Error: Failed to receive encrypted essential expenses." << endl; return 1; }
+    stringstream enc_essential_ss(enc_essential_str);
+    encrypted_essential_expenses_received.load(context, enc_essential_ss);
+    cout << "Encrypted Total ESSENTIAL Expenses loaded from network." << endl;
+
+    // Receive encrypted non-essential expenses sum
+    Ciphertext encrypted_non_essential_expenses_received;
+    string enc_non_essential_str = receive_data(new_socket);
+    if (enc_non_essential_str.empty()) { cerr << "Error: Failed to receive encrypted non-essential expenses." << endl; return 1; }
+    stringstream enc_non_essential_ss(enc_non_essential_str);
+    encrypted_non_essential_expenses_received.load(context, enc_non_essential_ss);
+    cout << "Encrypted Total NON-ESSENTIAL Expenses loaded from network." << endl;
+    cout << endl;
+
+    // --- 4. Perform Homomorphic Operations (Server-side) ---
+    // Homomorphic Sum of all Encrypted Category Expenses (Essentials + Non-Essentials)
+    Ciphertext encrypted_total_expenses;
+    evaluator.add(encrypted_essential_expenses_received, encrypted_non_essential_expenses_received, encrypted_total_expenses);
+    cout << "\nHomomorphic summation performed: Encrypted Total Expenses (Essentials + Non-Essentials) calculated." << endl;
+
+    // Homomorphic Net Income Calculation: Total Income - Total Expenses
     Ciphertext encrypted_net_income;
-    evaluator.sub(encrypted_income, encrypted_expense, encrypted_net_income);
-    cout << "\nHomomorphic subtraction performed: Encrypted Income - Encrypted Expense." << endl;
+    evaluator.sub(encrypted_total_income, encrypted_total_expenses, encrypted_net_income);
+    cout << "Homomorphic subtraction performed: Encrypted Total Income - Encrypted Total Expenses." << endl;
 
-    double savings_rate_double = 0.15;
-    int64_t savings_rate_scaled = static_cast<int64_t>(round(savings_rate_double * SCALE_FACTOR));
-    vector<int64_t> savings_rate_vector(slot_count, savings_rate_scaled);
-    Plaintext encoded_savings_rate;
-    batch_encoder.encode(savings_rate_vector, encoded_savings_rate);
-    cout << "Savings rate (" << savings_rate_double * 100 << "%) encoded to plaintext (on server)." << endl;
+    // Homomorphic Difference from Monthly Savings Goal: Net Income - Savings Goal
+    Ciphertext encrypted_goal_difference;
+    evaluator.sub_plain(encrypted_net_income, encoded_monthly_savings_goal, encrypted_goal_difference);
+    cout << "Homomorphic subtraction performed: Encrypted Net Income - Encoded Monthly Savings Goal." << endl;
+    cout << endl;
 
-    Ciphertext encrypted_savings_contribution;
-    evaluator.multiply_plain(encrypted_income, encoded_savings_rate, encrypted_savings_contribution);
-    cout << "Homomorphic multiplication (ciphertext-plaintext) performed: Encrypted Income * Encoded Savings Rate." << endl;
-    evaluator.relinearize(encrypted_savings_contribution, relin_keys, encrypted_savings_contribution);
-    cout << "Relinearization performed on encrypted savings contribution." << endl;
+    // --- 5. Send Encrypted Results back to Client ---
+    // Send calculated encrypted totals
+    stringstream enc_total_expenses_ss;
+    encrypted_total_expenses.save(enc_total_expenses_ss);
+    if (!send_data(new_socket, enc_total_expenses_ss.str())) { cerr << "Error: Failed to send encrypted total expenses." << endl; return 1; }
+    cout << "Encrypted Total Expenses sent to client." << endl;
 
-    // 5. Send Encrypted Results back to Client
     stringstream enc_net_income_ss;
     encrypted_net_income.save(enc_net_income_ss);
-    if (!send_data(new_socket, enc_net_income_ss.str())) return 1;
-    cout << "Encrypted net income sent to client." << endl;
+    if (!send_data(new_socket, enc_net_income_ss.str())) { cerr << "Error: Failed to send encrypted net income." << endl; return 1; }
+    cout << "Encrypted Net Income sent to client." << endl;
 
-    stringstream enc_savings_contribution_ss;
-    encrypted_savings_contribution.save(enc_savings_contribution_ss);
-    if (!send_data(new_socket, enc_savings_contribution_ss.str())) return 1;
-    cout << "Encrypted savings contribution sent to client." << endl;
+    stringstream enc_goal_difference_ss;
+    encrypted_goal_difference.save(enc_goal_difference_ss);
+    if (!send_data(new_socket, enc_goal_difference_ss.str())) { cerr << "Error: Failed to send encrypted goal difference." << endl; return 1; }
+    cout << "Encrypted Difference from Savings Goal sent to client." << endl;
+    cout << endl;
+
+    // Send back the individual encrypted category sums (for client to decrypt and show breakdown)
+    stringstream enc_essential_recd_ss;
+    encrypted_essential_expenses_received.save(enc_essential_recd_ss);
+    if (!send_data(new_socket, enc_essential_recd_ss.str())) { cerr << "Error: Failed to send encrypted essential expenses back." << endl; return 1; }
+    cout << "Encrypted ESSENTIAL Expenses sum sent back to client." << endl;
+
+    stringstream enc_non_essential_recd_ss;
+    encrypted_non_essential_expenses_received.save(enc_non_essential_recd_ss);
+    if (!send_data(new_socket, enc_non_essential_recd_ss.str())) { cerr << "Error: Failed to send encrypted non-essential expenses back." << endl; return 1; }
+    cout << "Encrypted NON-ESSENTIAL Expenses sum sent back to client." << endl;
 
     cout << "\nServer-side operations complete. Encrypted results sent to client." << endl;
 
